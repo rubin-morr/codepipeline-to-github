@@ -2,10 +2,10 @@
 > Update a GitHub commit status via CodePipeline events
 
 [![Go](https://img.shields.io/github/go-mod/go-version/mrz1836/codepipeline-to-github)](https://golang.org/)
-[![Build Status](https://travis-ci.com/mrz1836/codepipeline-to-github.svg?branch=master&v=2)](https://travis-ci.com/mrz1836/codepipeline-to-github)
-[![Report](https://goreportcard.com/badge/github.com/mrz1836/codepipeline-to-github?style=flat&v=2)](https://goreportcard.com/report/github.com/mrz1836/codepipeline-to-github)
-[![codecov](https://codecov.io/gh/mrz1836/codepipeline-to-github/branch/master/graph/badge.svg?v=2)](https://codecov.io/gh/mrz1836/codepipeline-to-github)
-[![Release](https://img.shields.io/github/release-pre/mrz1836/codepipeline-to-github.svg?style=flat&v=2)](https://github.com/mrz1836/codepipeline-to-github/releases)
+[![Build Status](https://travis-ci.com/mrz1836/codepipeline-to-github.svg?branch=master&v=3)](https://travis-ci.com/mrz1836/codepipeline-to-github)
+[![Report](https://goreportcard.com/badge/github.com/mrz1836/codepipeline-to-github?style=flat&v=3)](https://goreportcard.com/report/github.com/mrz1836/codepipeline-to-github)
+[![codecov](https://codecov.io/gh/mrz1836/codepipeline-to-github/branch/master/graph/badge.svg?v=3)](https://codecov.io/gh/mrz1836/codepipeline-to-github)
+[![Release](https://img.shields.io/github/release-pre/mrz1836/codepipeline-to-github.svg?style=flat&v=3)](https://github.com/mrz1836/codepipeline-to-github/releases)
 [![GoDoc](https://godoc.org/github.com/mrz1836/codepipeline-to-github?status.svg&style=flat)](https://pkg.go.dev/github.com/mrz1836/codepipeline-to-github)
 
 ## Table of Contents
@@ -49,6 +49,8 @@ The actual build process can be found in the [buildspec.yml](buildspec.yml) file
 
 <details>
 <summary><strong><code>Create New Hosting Environment (AWS)</code></strong></summary>
+
+<img src=".github/IMAGES/infrastructure-diagram.png" alt="infrastructure diagram" height="400" />
 
 This will create a new [AWS CloudFormation](https://aws.amazon.com/cloudformation/) stack with:
 - (1) [Lambda](https://aws.amazon.com/lambda/) Function(s)

@@ -112,7 +112,7 @@ lambda: ## Build a compiled version to deploy to Lambda
 	GOOS=linux GOARCH=amd64 $(MAKE) build
 
 lint: ## Run the Go lint application
-	@if [ "$(shell command -v golint)" == "" ]; then go get -u golang.org/x/lint/golint; fi
+	@if [ "$(shell command -v golint)" = "" ]; then go get -u golang.org/x/lint/golint; fi
 	@golint
 
 package: ## Process the CF template and prepare for deployment
@@ -173,6 +173,11 @@ test-short: ## Runs vet, lint and tests (excludes integration tests)
 	@$(MAKE) vet
 	@$(MAKE) lint
 	@go test ./... -v -test.short
+
+test-travis: ## Runs tests via Travis (also exports coverage)
+	@$(MAKE) vet
+	@$(MAKE) lint
+	@go test ./... -race -coverprofile=coverage.txt -covermode=atomic
 
 update:  ## Update all project dependencies
 	@go get -u ./... && go mod tidy
