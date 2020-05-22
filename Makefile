@@ -1,3 +1,6 @@
+## Set the binary name
+CUSTOM_BINARY_NAME := status
+
 # Common makefile commands & variables between projects
 include .make/Makefile.common
 
@@ -29,7 +32,12 @@ endif
 
 ## Cloud formation stack name (combines the app name with the stage for unique stacks)
 ifndef APPLICATION_STACK_NAME
-	override APPLICATION_STACK_NAME="$(APPLICATION_NAME)-$(APPLICATION_STAGE_NAME)"
+	override APPLICATION_STACK_NAME=$(subst _,-,"$(APPLICATION_NAME)-$(APPLICATION_STAGE_NAME)")
+endif
+
+## Application feature name (if it's a feature branch of a stage) (feature="some-feature")
+ifdef APPLICATION_FEATURE_NAME
+	override APPLICATION_STACK_NAME=$(subst _,-,"$(APPLICATION_NAME)-$(APPLICATION_STAGE_NAME)-$(APPLICATION_FEATURE_NAME)")
 endif
 
 ## S3 prefix to store the distribution files
@@ -57,14 +65,9 @@ ifndef RELEASES_DIR
 	override RELEASES_DIR=./releases
 endif
 
-## Function: status (binary name)
-ifndef STATUS_BINARY
-	override STATUS_BINARY=status
-endif
-
 ## Package directory name
 ifndef PACKAGE_NAME
-	override PACKAGE_NAME=status
+	override PACKAGE_NAME=$(BINARY_NAME)
 endif
 
 ## Set the local environment variables when using "run"
@@ -75,7 +78,7 @@ endif
 .PHONY: clean lambda deploy
 
 build: ## Build the lambda function as a compiled application
-	@go build -o $(RELEASES_DIR)/$(PACKAGE_NAME)/$(STATUS_BINARY) .
+	@go build -o $(RELEASES_DIR)/$(PACKAGE_NAME)/$(BINARY_NAME) .
 
 clean: ## Remove previous builds, test cache, and packaged releases
 	@go clean -cache -testcache -i -r
@@ -123,21 +126,25 @@ run: ## Fires the lambda function (run event=started)
 		--env-vars $(LOCAL_ENV_FILE)
 
 save-secrets: ## Helper for saving Github token(s) to Secrets Manager (extendable for more secrets)
-	@# Example: make save-secrets github_token=12345... kms_key_id=b329... (Optional) APPLICATION_STAGE_NAME=production
+	@# Example: make save-secrets github_token=12345... kms_key_id=b329... stage=<stage>
 	@test $(github_token)
 	@test $(kms_key_id)
-	@$(eval existing_secret := $(shell aws secretsmanager describe-secret --secret-id "$(APPLICATION_STAGE_NAME)/$(APPLICATION_NAME)" --output text))
 	@$(eval github_token_encrypted := $(shell $(MAKE) encrypt kms_key_id=$(kms_key_id) encrypt_value="$(github_token)"))
+	@$(eval secret_value := $(shell echo '{' \
+		'\"github_personal_token\":\"$(github_token)\"' \
+		',\"github_personal_token_encrypted\":\"$(github_token_encrypted)\"' \
+		'}'))
+	@$(eval existing_secret := $(shell aws secretsmanager describe-secret --secret-id "$(APPLICATION_STAGE_NAME)/$(APPLICATION_NAME)" --output text))
 	@if [ '$(existing_secret)' = "" ]; then\
 		echo "Creating a new secret..."; \
 		$(MAKE) create-secret \
 			name="$(APPLICATION_STAGE_NAME)/$(APPLICATION_NAME)" \
 			description="Sensitive credentials for $(APPLICATION_NAME):$(APPLICATION_STAGE_NAME)" \
-			secret_value='{\"github_personal_token\":\"$(github_token)\",\"github_personal_token_encrypted\":\"$(github_token_encrypted)\"}' \
+			secret_value='$(secret_value)' \
 			kms_key_id=$(kms_key_id);  \
 	else\
 		echo "Updating an existing secret..."; \
 		$(MAKE) update-secret \
             name="$(APPLICATION_STAGE_NAME)/$(APPLICATION_NAME)" \
-        	secret_value='{\"github_personal_token\":\"$(github_token)\",\"github_personal_token_encrypted\":\"$(github_token_encrypted)\"}'; \
+        	secret_value='$(secret_value)'; \
 	fi
